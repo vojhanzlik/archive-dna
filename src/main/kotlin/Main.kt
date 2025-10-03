@@ -1,16 +1,32 @@
 package org.example
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-fun main() {
-    val name = "Kotlin"
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    println("Hello, " + name + "!")
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
+import kotlin.system.exitProcess
 
-    for (i in 1..5) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        println("i = $i")
+fun main(args: Array<String>) {
+    if (args.size < 2) {
+        println("Usage: archive-dna <input-zip-file> <output-json-file>")
+        println("Example: archive-dna plugin.zip output.json")
+        exitProcess(1)
+    }
+
+    val inputFile = File(args[0])
+    val outputFile = File(args[1])
+
+    try {
+        val parser = ArchiveParser()
+        val fingerprint = parser.parse(inputFile)
+
+        val json = Json { prettyPrint = true }
+        val jsonString = json.encodeToString(fingerprint)
+
+        outputFile.writeText(jsonString)
+        println("Successfully parsed archive to ${outputFile.absolutePath}")
+    } catch (e: Exception) {
+        println("Error processing archive: ${e.message}")
+        e.printStackTrace()
+        exitProcess(1)
     }
 }
