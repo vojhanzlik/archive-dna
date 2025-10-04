@@ -3,22 +3,37 @@ package org.example
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import kotlin.system.exitProcess
 
+/**
+ * Main entry point.
+ */
 fun main(args: Array<String>) {
-    require(args.isNotEmpty()) {
-        printUsage()
-        "No arg provided"
-    }
+    try {
+        require(args.isNotEmpty()) {
+            printUsage()
+            "No arg provided"
+        }
 
-    val arg = args[0]
+        val arg = args[0]
 
-    when (arg) {
-        "parse" -> parseMode(args)
-        "compare" -> compareMode(args)
-        else -> error("Unknown arg: $arg\n${printUsage()}")
+        when (arg) {
+            "parse" -> parseMode(args)
+            "compare" -> compareMode(args)
+            else -> error("Unknown arg: $arg\n${printUsage()}")
+        }
+    } catch (e: IllegalArgumentException) {
+        println("Error: ${e.message}")
+        exitProcess(1)
+    } catch (e: Exception) {
+        println("Error: ${e.message}")
+        exitProcess(1)
     }
 }
 
+/**
+ * Prints usage information.
+ */
 fun printUsage() {
     println("Usage:")
     println("  archive-dna parse <input-zip-file> <output-json-file>")
@@ -32,6 +47,9 @@ fun printUsage() {
     println("  archive-dna compare output1.json output2.json")
 }
 
+/**
+ * Handles the parse arg.
+ */
 fun parseMode(args: Array<String>) {
     require(args.size >= 3) { "parse mode requires 2 arguments: <input-zip-file> <output-json-file>" }
 
@@ -40,8 +58,7 @@ fun parseMode(args: Array<String>) {
 
     require(inputFile.exists()) { "Input file '${inputFile.absolutePath}' does not exist" }
 
-    val parser = ArchiveParser()
-    val archiveMetadata = parser.parse(inputFile)
+    val archiveMetadata = ArchiveParser.parse(inputFile)
 
     val json = Json { prettyPrint = true }
     val jsonString = json.encodeToString(archiveMetadata)
@@ -51,6 +68,9 @@ fun parseMode(args: Array<String>) {
     println("Total entries: ${archiveMetadata.entries.size}")
 }
 
+/**
+ * Handles the compare arg.
+ */
 fun compareMode(args: Array<String>) {
     require(args.size >= 3) { "compare mode requires 2 arguments: <json-file-1> <json-file-2>" }
 
@@ -60,7 +80,6 @@ fun compareMode(args: Array<String>) {
     require(file1.exists()) { "File '${file1.absolutePath}' does not exist" }
     require(file2.exists()) { "File '${file2.absolutePath}' does not exist" }
 
-    val comparator = JaccardComparator()
-    val result = comparator.compare(file1, file2)
-    comparator.printComparison(result, file1.name, file2.name)
+    val result = JaccardComparator.compare(file1, file2)
+    JaccardComparator.printComparison(result, file1.name, file2.name)
 }

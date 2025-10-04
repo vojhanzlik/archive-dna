@@ -2,19 +2,18 @@ package org.example
 
 import java.io.File
 import java.util.zip.ZipFile
-import kotlin.system.exitProcess
 
-class ArchiveParser {
+/**
+ * Parses ZIP archives and extracts metadata from source files.
+ */
+object ArchiveParser {
+    /**
+     * Parses a ZIP archive and extracts metadata for .java and .kt files.
+     */
     fun parse(archiveFile: File): ArchiveMetadata {
+        require(archiveFile.exists()) { "Input file '${archiveFile.absolutePath}' does not exist" }
 
-        if (!archiveFile.exists()) {
-            println("Input file '${archiveFile.absolutePath}' does not exist")
-            exitProcess(1)
-        }
-
-        if (!archiveFile.name.endsWith(".zip", ignoreCase = true)) {
-            println("Input file does not have .zip extension")
-        }
+        require(archiveFile.name.endsWith(".zip", ignoreCase = true)) { "Input file must have .zip extension" }
 
         ZipFile(archiveFile).use { zipFile ->
             val entries = zipFile.entries().toList()
